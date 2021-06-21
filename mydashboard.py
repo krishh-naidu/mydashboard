@@ -1,4 +1,5 @@
 
+from os import name
 from numpy.lib.histograms import histogram
 import streamlit as st
 import numpy as np
@@ -10,7 +11,7 @@ import plotly.figure_factory as ff
 import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px 
-
+from plotly.subplots import make_subplots
 # Use the full page instead of a narrow central column
 st.set_page_config(layout="wide")
 
@@ -165,32 +166,36 @@ if st.sidebar.checkbox('Select Coutry Map'):
                         #mapbox_style="carto-positron"
                         )
         fig.update_layout(width=1000,height=300,margin={"r":0,"t":0,"l":0,"b":0})
-        st.plotly_chart(fig)
+        st.plotly_chart(fig)  
 
+## COUNTRY MAP
 df = px.data.gapminder().reset_index(drop=True)
-
 years_to_filter = st.slider('Years',min_value=1952,max_value=2007,step=5)
-if Region_option=='Asia' or 'Europe' or 'Africa' or 'Oceania' or 'Americas' or 'Polar':
-    df = df[df['continent']==Region_option]
-    df = df[df['year']==years_to_filter].reset_index(drop=True)
-    fig = px.choropleth(df, locations="iso_alpha", 
-                            color="pop", hover_name="country",
-                            color_continuous_scale=px.colors.sequential.deep,scope=Region_option.lower(),
-                            #mapbox_style="carto-positron"
-                            )
-fig.update_layout(width=1000,height=300,margin={"r":0,"t":0,"l":0,"b":0})
-st.plotly_chart(fig) 
+df = df[df['country']==option]
+df = df[df['year']==years_to_filter].reset_index(drop=True)
+fig1 = px.choropleth(df, locations="iso_alpha", 
+                    color="pop", hover_name="country",
+                    color_continuous_scale=px.colors.sequential.Reds,
+                    #mapbox_style="carto-positron"
+                )
+fig1.update_layout(width=1000,height=600,margin={"r":0,"t":0,"l":0,"b":0})
+st.plotly_chart(fig1) 
 
+
+## BAR CHART
 df = px.data.gapminder().reset_index(drop=True)
-df = df[df['continent']==Region_option]
+df = df[df['country']==option]
 df
 fig = px.bar(
     df,x='year',y='pop',
-    title='Population growth for' + ' ' + Region_option + ' ' + '1952 - 2007',
+    title='<b>Population growth for</b>' + ' ' + option + ' ' + '<b>1952 - 2007</b>',
+    labels={'pop':'population of ' + option, 'year':'<b>Years</b> '},
     color= 'pop')
 st.plotly_chart(fig)
 
-from plotly.subplots import make_subplots
+
+## MULTI AXES LINE CHART
+
 df = px.data.gapminder().reset_index(drop=True)
 df = df[df['country']==option]
 fig = make_subplots(specs=[[{"secondary_y": True}]])
@@ -203,11 +208,20 @@ fig.add_trace(
     go.Scatter(x=df['year'], y=df['gdpPercap'], name="GDP"),
     row=1, col=1, secondary_y=True,
 )
+
+# Add figure title
+fig.update_layout(
+    title_text="<b>GDP Per Capita vs Population of </b>" + ' ' + option
+)
 # Set x-axis title
 fig.update_xaxes(title_text="<b>Years</b>")
 
 # Set y-axes titles
 fig.update_yaxes(title_text="<b>Population</b>", secondary_y=False)
 fig.update_yaxes(title_text="<b>GDP Per Capita</b>", secondary_y=True)
+
+
 fig.update_layout(width=800,height=700)
 st.plotly_chart(fig)
+
+
